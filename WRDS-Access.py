@@ -2,6 +2,8 @@ import pandas as pd
 import wrds
 from pathlib import Path
 import yaml
+from scipy.stats.mstats import winsorize
+import numpy as np
 
 # create some folders
 Path('input').mkdir(exist_ok=True)
@@ -53,7 +55,7 @@ def prep_data():
 
 if __name__ == '__main__':
     # establish a connection to WRDS Server (requires .pgpass)
-    db = wrds.Connection(wrds_username=)
+    db = wrds.Connection(wrds_username=yaml.safe_load(open('.secrets.yaml'))['wrds'])
     db.list_tables(library='ibes')
 
     # I/B/E/S Summary History - Summary Statistics with Actuals (EPS for US Region)
