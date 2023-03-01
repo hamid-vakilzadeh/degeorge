@@ -207,7 +207,7 @@ if __name__ == "__main__":
     df = load_data()
 
     # save user selection of the years to include in the replication
-    with st.expander(label='Expand to change the parameters of the study'):
+    with st.expander(label='Expand to change the parameters of the study', expanded=True):
         st.subheader('Parameters of the Study')
 
         # user chooses the years of the sample period
