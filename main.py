@@ -7,45 +7,9 @@ import plotly.graph_objects as go
 
 
 # load the main data and cache it.
-@st.cache_data
-def load_data():
-    df_ibes_sumstat = pd.read_pickle('input/ibes_statsum_USD.pkl.gz')
-    df_ibes_actpsum = pd.read_pickle('input/ibes_actpsum_USD.pkl.gz')
-
-    df = df_ibes_actpsum.merge(df_ibes_sumstat, how='inner', on=['ticker', 'statpers'])
-    df['year'] = pd.DatetimeIndex(df['anndats_act']).year
-    df.sort_values(by=['ticker', 'statpers', 'anndats_act'], inplace=True)
-
-    df.drop_duplicates(['ticker', 'anndats_act'], keep='last', inplace=True)
-    df.dropna(subset=['ticker', 'fpedats'], inplace=True)
-
-    df['fpeq'] = df['fpedats']
-    df.reset_index(drop=True, inplace=True)
-    df.sort_values(by=['ticker', 'fpedats'], inplace=True)
-    df.set_index(['ticker', 'fpedats'], inplace=True)
-    df['prior_year_EPS'] = np.nan
-
-    for i in range(1, 5):
-        lag_fpeq = df['fpeq'].groupby(level=["ticker"]).shift(i)
-        lag_actual = df['actual'].groupby(level=["ticker"]).shift(i)
-        df = df.join(lag_fpeq, rsuffix='_l')
-        df = df.join(lag_actual, rsuffix='_l')
-        df['diff'] = df['fpeq'] - df['fpeq_l']
-        df['diff'] = df['diff'].dt.days
-        df.loc[(df['diff'] >= 355) & (df['diff'] < 375), 'one_year_agp'] = df['actual_l']
-        df['prior_year_EPS'].fillna(df['one_year_agp'], inplace=True)
-        df = df.drop(columns=['fpeq_l', 'actual_l', 'one_year_agp', 'diff'])
-
-    df['eps_n'] = df['actual'] * 100
-    df['ferr_n'] = (df['actual'] - df['meanest']) * 100
-    df['cheps_n'] = (df['actual'] - df['prior_year_EPS']) * 100
-
-    # winsorize variables
-    for column in ['eps_n', 'ferr_n', 'cheps_n']:
-        column_name = column.split("_")[0]
-        df[f'{column_name}_w'] = winsorize(df[f'{column_name}_n'], limits=[.01, .01])
-
-    return df
+@st.cache_data()
+def load_data() -> pd.DataFrame:
+    return pd.read_pickle('input/data.pkl.gz')
 
 
 # preparation of figure 4 of the paper
